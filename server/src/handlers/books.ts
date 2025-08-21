@@ -1,27 +1,34 @@
+import { db } from '../db';
+import { booksTable } from '../db/schema';
 import { type CreateBookInput, type UpdateBookInput, type Book, type BookSearchInput, type PaginatedResponse } from '../schema';
 
 // Create a new book (admin only)
 export async function createBook(input: CreateBookInput): Promise<Book> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is to create a new book in database,
-    // set initial available_stock equal to total_stock, and return the created book.
-    return {
-        id: 0,
-        title: input.title,
-        category: input.category,
-        author: input.author,
-        publisher: input.publisher,
-        publication_year: input.publication_year,
-        page_count: input.page_count,
-        isbn: input.isbn,
-        total_stock: input.total_stock,
-        available_stock: input.total_stock, // Initially same as total_stock
-        shelf_location: input.shelf_location,
-        status: 'tersedia',
-        description: input.description,
-        created_at: new Date(),
-        updated_at: new Date()
-    };
+    try {
+        // Insert book record with available_stock equal to total_stock initially
+        const result = await db.insert(booksTable)
+            .values({
+                title: input.title,
+                category: input.category,
+                author: input.author,
+                publisher: input.publisher,
+                publication_year: input.publication_year,
+                page_count: input.page_count,
+                isbn: input.isbn,
+                total_stock: input.total_stock,
+                available_stock: input.total_stock, // Initially same as total_stock
+                shelf_location: input.shelf_location,
+                status: 'tersedia', // Default status for new books
+                description: input.description
+            })
+            .returning()
+            .execute();
+
+        return result[0];
+    } catch (error) {
+        console.error('Book creation failed:', error);
+        throw error;
+    }
 }
 
 // Get all books with search and pagination (public access)
